@@ -1,9 +1,7 @@
 import xml.etree.ElementTree as ET
-
-# Χάρτες για μετατροπή κειμένων σε IDs
-lang_mapping = {'EN': 1, 'FR': 2, 'DE': 3, 'IT': 4}
-kind_mapping = {'A1': 1, 'A2': 2, 'A3': 3}
-status_mapping = {'corrected': 1, 'pending': 2, 'approved': 3}
+from state import lang_mapping
+from kind import kind_mapping
+from status import status_mapping
 
 def get_lang_integer(lang):
     return lang_mapping.get(lang, None)

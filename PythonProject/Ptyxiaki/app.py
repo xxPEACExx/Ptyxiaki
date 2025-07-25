@@ -8,6 +8,7 @@ import document
 from Ptyxiaki.role import initialize_role
 from Ptyxiaki.scheme import initialize_scheme
 from Ptyxiaki.kind import initialize_kind
+from Ptyxiaki.status import initialize_status
 
 print("Import document from:", document.__file__)
 
@@ -169,6 +170,7 @@ if __name__ == '__main__':
     initialize_kind(cursor, db)
     initialize_scheme(cursor, db)
     initialize_role(cursor, db)
+    initialize_status(cursor, db)
 
 
     app.run(debug=True)

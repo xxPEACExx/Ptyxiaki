@@ -1,35 +1,4 @@
-# # # # title.py
-# #
-# # def insert_title(did, cursor, db):
-# #     if did:
-# #         cursor.execute("INSERT IGNORE INTO title (did) VALUES (%s)", (did,))
-# #         db.commit()
-# #
-# # title.py
-# def insert_title(did, root, cursor, db):
-#     if not did or root is None:
-#         return
-#
-#     invention_titles = root.findall(".//invention-title")
-#     title_text = None
-#     for title in invention_titles:
-#         if title.attrib.get('lang') == 'EN':
-#             title_text = ''.join(title.itertext()).strip()
-#             break
-#
-#     if not title_text:
-#         return  # Δεν υπάρχει τίτλος στα Αγγλικά
-#
-#     # Αν θες, εδώ κάνεις lookup για lang_id στον πίνακα state. Εγώ βάζω 1 για EN απλά
-#     lang_id = 1
-#
-#     cursor.execute("""
-#         INSERT INTO title (did, title_text, lang)
-#         VALUES (%s, %s, %s)
-#         ON DUPLICATE KEY UPDATE title_text = VALUES(title_text), lang = VALUES(lang)
-#     """, (did, title_text, lang_id))
-#     db.commit()
-# title.py
+
 
 def get_lang_id(lang_code, cursor, db):
     cursor.execute("SELECT CID FROM state WHERE country_name = %s", (lang_code,))
