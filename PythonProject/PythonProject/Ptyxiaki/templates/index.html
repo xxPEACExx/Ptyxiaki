@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Εφαρμογή XML</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body>
+    <div class="container">
+        <h1>Επεξεργασία XML με Έλεγχος</h1>
+
+        <p>Επίλεξε φάκελο με αρχεία XML (μπορεί να περιέχει υποφακέλους):</p>
+        <input type="file" id="folderInput" webkitdirectory directory multiple />
+        <br /><br />
+
+        <button id="playBtn" onclick="startProcessing()">▶ Play</button>
+        <button id="pauseBtn" onclick="togglePause()" disabled>⏸ Pause</button>
+        <button id="stopBtn" onclick="stopProcessing()" disabled>■ Stop</button>
+
+        <p id="statusMessage"></p>
+
+        <div id="progressContainer" style="display:none;">
+            <p>Πρόοδος: <span id="progressText">0%</span></p>
+            <div id="progressBar" style="width: 0%; height: 20px; background-color: #4caf50;"></div>
+        </div>
+    </div>
+
+    <script>
+        let isPaused = false;
+        let intervalId = null;
+
+        function startProcessing() {
+            const input = document.getElementById('folderInput');
+            const files = input.files;
+
+            if (!files.length) {
+                alert('Παρακαλώ επίλεξε φάκελο με αρχεία XML.');
+                return;
+            }
+
+            const formData = new FormData();
+
+            for (const file of files) {
+                if (!file.name.toLowerCase().endsWith('.xml')) continue;
+                formData.append('files', file, file.webkitRelativePath);
+            }
+
+            document.getElementById('statusMessage').innerText = 'Ξεκινάει η επεξεργασία...';
+            document.getElementById('playBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = false;
+
+            fetch('/upload_folder', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('statusMessage').innerText = data.message;
+                showProgress();
+            })
+            .catch(() => {
+                document.getElementById('statusMessage').innerText = 'Σφάλμα κατά το ανέβασμα φακέλου.';
+                resetButtons();
+            });
+        }
+
+        function togglePause() {
+            const action = isPaused ? 'continue' : 'pause';
+
+            fetch('/control', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action})
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('statusMessage').innerText = data.message;
+                isPaused = !isPaused;
+                document.getElementById('pauseBtn').innerText = isPaused ? '▶ Continue' : '⏸ Pause';
+            });
+        }
+
+        function stopProcessing() {
+            fetch('/control', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'stop'})
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('statusMessage').innerText = data.message;
+                resetButtons();
+                hideProgress();
+            });
+        }
+
+        function showProgress() {
+            document.getElementById('progressContainer').style.display = 'block';
+            intervalId = setInterval(() => {
+                fetch('/get_progress')
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('progressText').innerText = data.progress + '%';
+                        document.getElementById('progressBar').style.width = data.progress + '%';
+
+                        if (data.status === 'stopped' || data.progress >= 100) {
+                            clearInterval(intervalId);
+                            resetButtons();
+                        }
+                    });
+            }, 1000);
+        }
+
+        function resetButtons() {
+            document.getElementById('playBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('pauseBtn').innerText = '⏸ Pause';
+            document.getElementById('stopBtn').disabled = true;
+            isPaused = false;
+        }
+
+        function hideProgress() {
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('progressText').innerText = '0%';
+            document.getElementById('progressBar').style.width = '0%';
+        }
+    </script>
+</body>
+</html>
