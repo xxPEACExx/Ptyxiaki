@@ -161,6 +161,32 @@ def get_progress():
     if paused:
         status = 'paused'
     return jsonify({'progress': progress_percentage, 'status': status})
+@app.route('/query_documents', methods=['POST'])
+def query_documents():
+    try:
+        data = request.json or {}
+        query_type = data.get('queryType', 'all')
+
+        if query_type == 'did_only':
+            cursor.execute("SELECT did FROM document")
+            rows = cursor.fetchall()
+            results = [{"did": row[0]} for row in rows]
+        else:
+            cursor.execute("SELECT did, ucid, doc_number, date FROM document")
+            rows = cursor.fetchall()
+            results = []
+            for row in rows:
+                results.append({
+                    "did": row[0],
+                    "ucid": row[1],
+                    "doc_number": row[2],
+                    "date": row[3]
+                })
+
+        return jsonify({"results": results})
+    except Exception as e:
+        print(f"Error in /query_documents: {e}")
+        return jsonify({"results": []}), 500
 
 
 if __name__ == '__main__':

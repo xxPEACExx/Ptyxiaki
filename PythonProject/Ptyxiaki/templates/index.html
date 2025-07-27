@@ -1,3 +1,452 @@
+
+<!--&lt;!&ndash;<!DOCTYPE html>&ndash;&gt;-->
+<!--&lt;!&ndash;<html lang="el">&ndash;&gt;-->
+<!--&lt;!&ndash;<head>&ndash;&gt;-->
+<!--&lt;!&ndash;    <meta charset="UTF-8" />&ndash;&gt;-->
+<!--&lt;!&ndash;    <meta name="viewport" content="width=device-width, initial-scale=1" />&ndash;&gt;-->
+<!--&lt;!&ndash;    <title>Εφαρμογή XML</title>&ndash;&gt;-->
+<!--&lt;!&ndash;    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />&ndash;&gt;-->
+<!--&lt;!&ndash;</head>&ndash;&gt;-->
+<!--&lt;!&ndash;<body>&ndash;&gt;-->
+<!--&lt;!&ndash;    <div class="container">&ndash;&gt;-->
+<!--&lt;!&ndash;        <h1>Επεξεργασία XML με Έλεγχο</h1>&ndash;&gt;-->
+
+<!--&lt;!&ndash;        <p>Επίλεξε φάκελο με αρχεία XML (μπορεί να περιέχει υποφακέλους):</p>&ndash;&gt;-->
+<!--&lt;!&ndash;        <input type="file" id="folderInput" webkitdirectory directory multiple />&ndash;&gt;-->
+<!--&lt;!&ndash;        <br /><br />&ndash;&gt;-->
+
+<!--&lt;!&ndash;        <button id="playBtn" onclick="startProcessing()">▶ Play</button>&ndash;&gt;-->
+<!--&lt;!&ndash;        <button id="pauseBtn" onclick="togglePause()" disabled>⏸ Pause</button>&ndash;&gt;-->
+<!--&lt;!&ndash;        <button id="stopBtn" onclick="stopProcessing()" disabled>■ Stop</button>&ndash;&gt;-->
+
+<!--&lt;!&ndash;        <p id="statusMessage"></p>&ndash;&gt;-->
+
+<!--&lt;!&ndash;        <div id="progressContainer" style="display:none;">&ndash;&gt;-->
+<!--&lt;!&ndash;            <p>Πρόοδος: <span id="progressText">0%</span></p>&ndash;&gt;-->
+<!--&lt;!&ndash;            <div id="progressBar" style="width: 0%; height: 20px; background-color: #4caf50;"></div>&ndash;&gt;-->
+<!--&lt;!&ndash;        </div>&ndash;&gt;-->
+
+<!--&lt;!&ndash;        <hr />&ndash;&gt;-->
+
+<!--&lt;!&ndash;        <h2>Εμφάνιση Όλων των Εγγράφων</h2>&ndash;&gt;-->
+
+<!--&lt;!&ndash;        <label for="queryTypeSelect">Επέλεξε τι θέλεις να δεις:</label>&ndash;&gt;-->
+<!--&lt;!&ndash;        <select id="queryTypeSelect">&ndash;&gt;-->
+<!--&lt;!&ndash;            <option value="all">Όλα τα πεδία</option>&ndash;&gt;-->
+<!--&lt;!&ndash;            <option value="did_only">Μόνο DID</option>&ndash;&gt;-->
+<!--&lt;!&ndash;        </select>&ndash;&gt;-->
+<!--&lt;!&ndash;        <button id="loadDocsBtn" onclick="loadDocuments()" disabled>Φόρτωση</button>&ndash;&gt;-->
+
+<!--&lt;!&ndash;        <table id="resultsTable" border="1" style="margin-top: 20px; display: none; width: 100%;">&ndash;&gt;-->
+<!--&lt;!&ndash;            <thead>&ndash;&gt;-->
+<!--&lt;!&ndash;                <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <th>DID</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <th>UCID</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <th>Doc Number</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <th>Date</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;            </thead>&ndash;&gt;-->
+<!--&lt;!&ndash;            <tbody></tbody>&ndash;&gt;-->
+<!--&lt;!&ndash;        </table>&ndash;&gt;-->
+<!--&lt;!&ndash;    </div>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    <script>&ndash;&gt;-->
+<!--&lt;!&ndash;        let isPaused = false;&ndash;&gt;-->
+<!--&lt;!&ndash;        let intervalId = null;&ndash;&gt;-->
+
+<!--&lt;!&ndash;        function startProcessing() {&ndash;&gt;-->
+<!--&lt;!&ndash;            const input = document.getElementById('folderInput');&ndash;&gt;-->
+<!--&lt;!&ndash;            const files = input.files;&ndash;&gt;-->
+
+<!--&lt;!&ndash;            if (!files.length) {&ndash;&gt;-->
+<!--&lt;!&ndash;                alert('Παρακαλώ επίλεξε φάκελο με αρχεία XML.');&ndash;&gt;-->
+<!--&lt;!&ndash;                return;&ndash;&gt;-->
+<!--&lt;!&ndash;            }&ndash;&gt;-->
+
+<!--&lt;!&ndash;            const formData = new FormData();&ndash;&gt;-->
+
+<!--&lt;!&ndash;            for (const file of files) {&ndash;&gt;-->
+<!--&lt;!&ndash;                if (!file.name.toLowerCase().endsWith('.xml')) continue;&ndash;&gt;-->
+<!--&lt;!&ndash;                formData.append('files', file, file.webkitRelativePath);&ndash;&gt;-->
+<!--&lt;!&ndash;            }&ndash;&gt;-->
+
+<!--&lt;!&ndash;            document.getElementById('statusMessage').innerText = 'Ξεκινάει η επεξεργασία...';&ndash;&gt;-->
+<!--&lt;!&ndash;            document.getElementById('playBtn').disabled = true;&ndash;&gt;-->
+<!--&lt;!&ndash;            document.getElementById('pauseBtn').disabled = false;&ndash;&gt;-->
+<!--&lt;!&ndash;            document.getElementById('stopBtn').disabled = false;&ndash;&gt;-->
+
+<!--&lt;!&ndash;            fetch('/upload_folder', {&ndash;&gt;-->
+<!--&lt;!&ndash;                method: 'POST',&ndash;&gt;-->
+<!--&lt;!&ndash;                body: formData&ndash;&gt;-->
+<!--&lt;!&ndash;            })&ndash;&gt;-->
+<!--&lt;!&ndash;            .then(res => res.json())&ndash;&gt;-->
+<!--&lt;!&ndash;            .then(data => {&ndash;&gt;-->
+<!--&lt;!&ndash;                document.getElementById('statusMessage').innerText = data.message;&ndash;&gt;-->
+<!--&lt;!&ndash;                showProgress();&ndash;&gt;-->
+
+<!--&lt;!&ndash;                // Ενεργοποίηση του κουμπιού "Φόρτωση"&ndash;&gt;-->
+<!--&lt;!&ndash;                document.getElementById('loadDocsBtn').disabled = false;&ndash;&gt;-->
+<!--&lt;!&ndash;            })&ndash;&gt;-->
+<!--&lt;!&ndash;            .catch(() => {&ndash;&gt;-->
+<!--&lt;!&ndash;                document.getElementById('statusMessage').innerText = 'Σφάλμα κατά το ανέβασμα φακέλου.';&ndash;&gt;-->
+<!--&lt;!&ndash;                resetButtons();&ndash;&gt;-->
+
+<!--&lt;!&ndash;                // Απενεργοποίηση κουμπιού αν αποτύχει&ndash;&gt;-->
+<!--&lt;!&ndash;                document.getElementById('loadDocsBtn').disabled = true;&ndash;&gt;-->
+<!--&lt;!&ndash;            });&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        function togglePause() {&ndash;&gt;-->
+<!--&lt;!&ndash;            const action = isPaused ? 'continue' : 'pause';&ndash;&gt;-->
+
+<!--&lt;!&ndash;            fetch('/control', {&ndash;&gt;-->
+<!--&lt;!&ndash;                method: 'POST',&ndash;&gt;-->
+<!--&lt;!&ndash;                headers: {'Content-Type': 'application/json'},&ndash;&gt;-->
+<!--&lt;!&ndash;                body: JSON.stringify({action})&ndash;&gt;-->
+<!--&lt;!&ndash;            })&ndash;&gt;-->
+<!--&lt;!&ndash;            .then(res => res.json())&ndash;&gt;-->
+<!--&lt;!&ndash;            .then(data => {&ndash;&gt;-->
+<!--&lt;!&ndash;                document.getElementById('statusMessage').innerText = data.message;&ndash;&gt;-->
+<!--&lt;!&ndash;                isPaused = !isPaused;&ndash;&gt;-->
+<!--&lt;!&ndash;                document.getElementById('pauseBtn').innerText = isPaused ? '▶ Continue' : '⏸ Pause';&ndash;&gt;-->
+<!--&lt;!&ndash;            });&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        function stopProcessing() {&ndash;&gt;-->
+<!--&lt;!&ndash;            fetch('/control', {&ndash;&gt;-->
+<!--&lt;!&ndash;                method: 'POST',&ndash;&gt;-->
+<!--&lt;!&ndash;                headers: {'Content-Type': 'application/json'},&ndash;&gt;-->
+<!--&lt;!&ndash;                body: JSON.stringify({action: 'stop'})&ndash;&gt;-->
+<!--&lt;!&ndash;            })&ndash;&gt;-->
+<!--&lt;!&ndash;            .then(res => res.json())&ndash;&gt;-->
+<!--&lt;!&ndash;            .then(data => {&ndash;&gt;-->
+<!--&lt;!&ndash;                document.getElementById('statusMessage').innerText = data.message;&ndash;&gt;-->
+<!--&lt;!&ndash;                resetButtons();&ndash;&gt;-->
+<!--&lt;!&ndash;                hideProgress();&ndash;&gt;-->
+<!--&lt;!&ndash;            });&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        function showProgress() {&ndash;&gt;-->
+<!--&lt;!&ndash;            document.getElementById('progressContainer').style.display = 'block';&ndash;&gt;-->
+<!--&lt;!&ndash;            intervalId = setInterval(() => {&ndash;&gt;-->
+<!--&lt;!&ndash;                fetch('/get_progress')&ndash;&gt;-->
+<!--&lt;!&ndash;                    .then(res => res.json())&ndash;&gt;-->
+<!--&lt;!&ndash;                    .then(data => {&ndash;&gt;-->
+<!--&lt;!&ndash;                        document.getElementById('progressText').innerText = data.progress + '%';&ndash;&gt;-->
+<!--&lt;!&ndash;                        document.getElementById('progressBar').style.width = data.progress + '%';&ndash;&gt;-->
+
+<!--&lt;!&ndash;                        if (data.status === 'stopped' || data.progress >= 100) {&ndash;&gt;-->
+<!--&lt;!&ndash;                            clearInterval(intervalId);&ndash;&gt;-->
+<!--&lt;!&ndash;                            resetButtons();&ndash;&gt;-->
+<!--&lt;!&ndash;                            // Δεν απενεργοποιούμε το κουμπί εδώ για να μπορεί να φορτώσει τα docs&ndash;&gt;-->
+<!--&lt;!&ndash;                        }&ndash;&gt;-->
+<!--&lt;!&ndash;                    });&ndash;&gt;-->
+<!--&lt;!&ndash;            }, 1000);&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        function resetButtons() {&ndash;&gt;-->
+<!--&lt;!&ndash;            document.getElementById('playBtn').disabled = false;&ndash;&gt;-->
+<!--&lt;!&ndash;            document.getElementById('pauseBtn').disabled = true;&ndash;&gt;-->
+<!--&lt;!&ndash;            document.getElementById('pauseBtn').innerText = '⏸ Pause';&ndash;&gt;-->
+<!--&lt;!&ndash;            document.getElementById('stopBtn').disabled = true;&ndash;&gt;-->
+<!--&lt;!&ndash;            isPaused = false;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        function hideProgress() {&ndash;&gt;-->
+<!--&lt;!&ndash;            document.getElementById('progressContainer').style.display = 'none';&ndash;&gt;-->
+<!--&lt;!&ndash;            document.getElementById('progressText').innerText = '0%';&ndash;&gt;-->
+<!--&lt;!&ndash;            document.getElementById('progressBar').style.width = '0%';&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        function loadDocuments() {&ndash;&gt;-->
+<!--&lt;!&ndash;            const queryType = document.getElementById('queryTypeSelect').value;&ndash;&gt;-->
+
+<!--&lt;!&ndash;            fetch('/query_documents', {&ndash;&gt;-->
+<!--&lt;!&ndash;                method: 'POST',&ndash;&gt;-->
+<!--&lt;!&ndash;                headers: {'Content-Type': 'application/json'},&ndash;&gt;-->
+<!--&lt;!&ndash;                body: JSON.stringify({ queryType })&ndash;&gt;-->
+<!--&lt;!&ndash;            })&ndash;&gt;-->
+<!--&lt;!&ndash;            .then(res => res.json())&ndash;&gt;-->
+<!--&lt;!&ndash;            .then(data => {&ndash;&gt;-->
+<!--&lt;!&ndash;                const table = document.getElementById('resultsTable');&ndash;&gt;-->
+<!--&lt;!&ndash;                const tbody = table.querySelector('tbody');&ndash;&gt;-->
+<!--&lt;!&ndash;                tbody.innerHTML = '';&ndash;&gt;-->
+
+<!--&lt;!&ndash;                if (!data.results || data.results.length === 0) {&ndash;&gt;-->
+<!--&lt;!&ndash;                    table.style.display = 'none';&ndash;&gt;-->
+<!--&lt;!&ndash;                    alert('Δεν βρέθηκαν αποτελέσματα.');&ndash;&gt;-->
+<!--&lt;!&ndash;                    return;&ndash;&gt;-->
+<!--&lt;!&ndash;                }&ndash;&gt;-->
+
+<!--&lt;!&ndash;                if (queryType === 'did_only') {&ndash;&gt;-->
+<!--&lt;!&ndash;                    // Μόνο στήλη DID&ndash;&gt;-->
+<!--&lt;!&ndash;                    table.querySelector('thead').innerHTML = `&ndash;&gt;-->
+<!--&lt;!&ndash;                        <tr><th>DID</th></tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                    `;&ndash;&gt;-->
+<!--&lt;!&ndash;                    data.results.forEach(doc => {&ndash;&gt;-->
+<!--&lt;!&ndash;                        const row = document.createElement('tr');&ndash;&gt;-->
+<!--&lt;!&ndash;                        row.innerHTML = `<td>${doc.did}</td>`;&ndash;&gt;-->
+<!--&lt;!&ndash;                        tbody.appendChild(row);&ndash;&gt;-->
+<!--&lt;!&ndash;                    });&ndash;&gt;-->
+<!--&lt;!&ndash;                } else {&ndash;&gt;-->
+<!--&lt;!&ndash;                    // Όλα τα πεδία&ndash;&gt;-->
+<!--&lt;!&ndash;                    table.querySelector('thead').innerHTML = `&ndash;&gt;-->
+<!--&lt;!&ndash;                        <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <th>DID</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <th>UCID</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <th>Doc Number</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <th>Date</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                    `;&ndash;&gt;-->
+<!--&lt;!&ndash;                    data.results.forEach(doc => {&ndash;&gt;-->
+<!--&lt;!&ndash;                        const row = document.createElement('tr');&ndash;&gt;-->
+<!--&lt;!&ndash;                        row.innerHTML = `&ndash;&gt;-->
+<!--&lt;!&ndash;                            <td>${doc.did}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <td>${doc.ucid}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <td>${doc.doc_number}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <td>${doc.date || ''}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                        `;&ndash;&gt;-->
+<!--&lt;!&ndash;                        tbody.appendChild(row);&ndash;&gt;-->
+<!--&lt;!&ndash;                    });&ndash;&gt;-->
+<!--&lt;!&ndash;                }&ndash;&gt;-->
+
+<!--&lt;!&ndash;                table.style.display = 'table';&ndash;&gt;-->
+<!--&lt;!&ndash;            })&ndash;&gt;-->
+<!--&lt;!&ndash;            .catch(() => {&ndash;&gt;-->
+<!--&lt;!&ndash;                alert('Σφάλμα κατά την ανάκτηση των εγγράφων.');&ndash;&gt;-->
+<!--&lt;!&ndash;            });&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;    </script>&ndash;&gt;-->
+<!--&lt;!&ndash;</body>&ndash;&gt;-->
+<!--&lt;!&ndash;</html>&ndash;&gt;-->
+<!--<!DOCTYPE html>-->
+<!--<html lang="el">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8" />-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1" />-->
+<!--    <title>Εφαρμογή XML</title>-->
+<!--    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />-->
+<!--</head>-->
+<!--<body>-->
+<!--    <div class="container">-->
+<!--        <h1>Επεξεργασία XML με Έλεγχο</h1>-->
+
+<!--        <p>Επίλεξε φάκελο με αρχεία XML (μπορεί να περιέχει υποφακέλους):</p>-->
+<!--        <input type="file" id="folderInput" webkitdirectory directory multiple />-->
+<!--        <br /><br />-->
+
+<!--        <button id="playBtn" onclick="startProcessing()">▶ Play</button>-->
+<!--        <button id="pauseBtn" onclick="togglePause()" disabled>⏸ Pause</button>-->
+<!--        <button id="stopBtn" onclick="stopProcessing()" disabled>■ Stop</button>-->
+
+<!--        <p id="statusMessage"></p>-->
+
+<!--        <div id="progressContainer" style="display:none;">-->
+<!--            <p>Πρόοδος: <span id="progressText">0%</span></p>-->
+<!--            <div id="progressBar" style="width: 0%; height: 20px; background-color: #4caf50;"></div>-->
+<!--        </div>-->
+
+<!--        <hr />-->
+
+<!--        <h2>Οδηγίες Χρήσης</h2>-->
+<!--        <button onclick="toggleInstructions()">📘 Εμφάνιση/Απόκρυψη Οδηγιών</button>-->
+<!--        <div id="instructions" style="display: none; margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9;">-->
+<!--            <ul>-->
+<!--                <li>Επέλεξε φάκελο με αρχεία XML από το κουμπί επιλογής.</li>-->
+<!--                <li>Πάτησε <strong>Play</strong> για να ξεκινήσει η επεξεργασία.</li>-->
+<!--                <li>Χρησιμοποίησε <strong>Pause</strong> και <strong>Stop</strong> για έλεγχο της διαδικασίας.</li>-->
+<!--                <li>Μόλις ολοκληρωθεί, χρησιμοποίησε το dropdown για να επιλέξεις τι να εμφανίσεις.</li>-->
+<!--                <li>Πάτησε <strong>Φόρτωση</strong> για να εμφανιστούν τα δεδομένα από τη βάση.</li>-->
+<!--            </ul>-->
+<!--        </div>-->
+
+<!--        <hr />-->
+
+<!--        <h2>Εμφάνιση Όλων των Εγγράφων</h2>-->
+
+<!--        <label for="queryTypeSelect">Επέλεξε τι θέλεις να δεις:</label>-->
+<!--        <select id="queryTypeSelect">-->
+<!--            <option value="all">Όλα τα πεδία</option>-->
+<!--            <option value="did_only">Μόνο DID</option>-->
+<!--        </select>-->
+<!--        <button id="loadDocsBtn" onclick="loadDocuments()" disabled>Φόρτωση</button>-->
+
+<!--        <table id="resultsTable" border="1" style="margin-top: 20px; display: none; width: 100%;">-->
+<!--            <thead>-->
+<!--                <tr>-->
+<!--                    <th>DID</th>-->
+<!--                    <th>UCID</th>-->
+<!--                    <th>Doc Number</th>-->
+<!--                    <th>Date</th>-->
+<!--                </tr>-->
+<!--            </thead>-->
+<!--            <tbody></tbody>-->
+<!--        </table>-->
+<!--    </div>-->
+
+<!--    <script>-->
+<!--        let isPaused = false;-->
+<!--        let intervalId = null;-->
+
+<!--        function toggleInstructions() {-->
+<!--            const box = document.getElementById('instructions');-->
+<!--            box.style.display = box.style.display === 'none' ? 'block' : 'none';-->
+<!--        }-->
+
+<!--        function startProcessing() {-->
+<!--            const input = document.getElementById('folderInput');-->
+<!--            const files = input.files;-->
+
+<!--            if (!files.length) {-->
+<!--                alert('Παρακαλώ επίλεξε φάκελο με αρχεία XML.');-->
+<!--                return;-->
+<!--            }-->
+
+<!--            const formData = new FormData();-->
+
+<!--            for (const file of files) {-->
+<!--                if (!file.name.toLowerCase().endsWith('.xml')) continue;-->
+<!--                formData.append('files', file, file.webkitRelativePath);-->
+<!--            }-->
+
+<!--            document.getElementById('statusMessage').innerText = 'Ξεκινάει η επεξεργασία...';-->
+<!--            document.getElementById('playBtn').disabled = true;-->
+<!--            document.getElementById('pauseBtn').disabled = false;-->
+<!--            document.getElementById('stopBtn').disabled = false;-->
+
+<!--            fetch('/upload_folder', {-->
+<!--                method: 'POST',-->
+<!--                body: formData-->
+<!--            })-->
+<!--            .then(res => res.json())-->
+<!--            .then(data => {-->
+<!--                document.getElementById('statusMessage').innerText = data.message;-->
+<!--                showProgress();-->
+<!--                document.getElementById('loadDocsBtn').disabled = false;-->
+<!--            })-->
+<!--            .catch(() => {-->
+<!--                document.getElementById('statusMessage').innerText = 'Σφάλμα κατά το ανέβασμα φακέλου.';-->
+<!--                resetButtons();-->
+<!--                document.getElementById('loadDocsBtn').disabled = true;-->
+<!--            });-->
+<!--        }-->
+
+<!--        function togglePause() {-->
+<!--            const action = isPaused ? 'continue' : 'pause';-->
+
+<!--            fetch('/control', {-->
+<!--                method: 'POST',-->
+<!--                headers: {'Content-Type': 'application/json'},-->
+<!--                body: JSON.stringify({action})-->
+<!--            })-->
+<!--            .then(res => res.json())-->
+<!--            .then(data => {-->
+<!--                document.getElementById('statusMessage').innerText = data.message;-->
+<!--                isPaused = !isPaused;-->
+<!--                document.getElementById('pauseBtn').innerText = isPaused ? '▶ Continue' : '⏸ Pause';-->
+<!--            });-->
+<!--        }-->
+
+<!--        function stopProcessing() {-->
+<!--            fetch('/control', {-->
+<!--                method: 'POST',-->
+<!--                headers: {'Content-Type': 'application/json'},-->
+<!--                body: JSON.stringify({action: 'stop'})-->
+<!--            })-->
+<!--            .then(res => res.json())-->
+<!--            .then(data => {-->
+<!--                document.getElementById('statusMessage').innerText = data.message;-->
+<!--                resetButtons();-->
+<!--                hideProgress();-->
+<!--            });-->
+<!--        }-->
+
+<!--        function showProgress() {-->
+<!--            document.getElementById('progressContainer').style.display = 'block';-->
+<!--            intervalId = setInterval(() => {-->
+<!--                fetch('/get_progress')-->
+<!--                    .then(res => res.json())-->
+<!--                    .then(data => {-->
+<!--                        document.getElementById('progressText').innerText = data.progress + '%';-->
+<!--                        document.getElementById('progressBar').style.width = data.progress + '%';-->
+
+<!--                        if (data.status === 'stopped' || data.progress >= 100) {-->
+<!--                            clearInterval(intervalId);-->
+<!--                            resetButtons();-->
+<!--                        }-->
+<!--                    });-->
+<!--            }, 1000);-->
+<!--        }-->
+
+<!--        function resetButtons() {-->
+<!--            document.getElementById('playBtn').disabled = false;-->
+<!--            document.getElementById('pauseBtn').disabled = true;-->
+<!--            document.getElementById('pauseBtn').innerText = '⏸ Pause';-->
+<!--            document.getElementById('stopBtn').disabled = true;-->
+<!--            isPaused = false;-->
+<!--        }-->
+
+<!--        function hideProgress() {-->
+<!--            document.getElementById('progressContainer').style.display = 'none';-->
+<!--            document.getElementById('progressText').innerText = '0%';-->
+<!--            document.getElementById('progressBar').style.width = '0%';-->
+<!--        }-->
+
+<!--        function loadDocuments() {-->
+<!--            const queryType = document.getElementById('queryTypeSelect').value;-->
+
+<!--            fetch('/query_documents', {-->
+<!--                method: 'POST',-->
+<!--                headers: {'Content-Type': 'application/json'},-->
+<!--                body: JSON.stringify({ queryType })-->
+<!--            })-->
+<!--            .then(res => res.json())-->
+<!--            .then(data => {-->
+<!--                const table = document.getElementById('resultsTable');-->
+<!--                const tbody = table.querySelector('tbody');-->
+<!--                tbody.innerHTML = '';-->
+
+<!--                if (!data.results || data.results.length === 0) {-->
+<!--                    table.style.display = 'none';-->
+<!--                    alert('Δεν βρέθηκαν αποτελέσματα.');-->
+<!--                    return;-->
+<!--                }-->
+
+<!--                if (queryType === 'did_only') {-->
+<!--                    table.querySelector('thead').innerHTML = `<tr><th>DID</th></tr>`;-->
+<!--                    data.results.forEach(doc => {-->
+<!--                        const row = document.createElement('tr');-->
+<!--                        row.innerHTML = `<td>${doc.did}</td>`;-->
+<!--                        tbody.appendChild(row);-->
+<!--                    });-->
+<!--                } else {-->
+<!--                    table.querySelector('thead').innerHTML = `-->
+<!--                        <tr>-->
+<!--                            <th>DID</th>-->
+<!--                            <th>UCID</th>-->
+<!--                            <th>Doc Number</th>-->
+<!--                            <th>Date</th>-->
+<!--                        </tr>`;-->
+<!--                    data.results.forEach(doc => {-->
+<!--                        const row = document.createElement('tr');-->
+<!--                        row.innerHTML = `-->
+<!--                            <td>${doc.did}</td>-->
+<!--                            <td>${doc.ucid}</td>-->
+<!--                            <td>${doc.doc_number}</td>-->
+<!--                            <td>${doc.date || ''}</td>`;-->
+<!--                        tbody.appendChild(row);-->
+<!--                    });-->
+<!--                }-->
+
+<!--                table.style.display = 'table';-->
+<!--            })-->
+<!--            .catch(() => {-->
+<!--                alert('Σφάλμα κατά την ανάκτηση των εγγράφων.');-->
+<!--            });-->
+<!--        }-->
+<!--    </script>-->
+<!--</body>-->
+<!--</html>-->
 <!DOCTYPE html>
 <html lang="el">
 <head>
@@ -5,10 +454,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Εφαρμογή XML</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <style>
+        #manualPanel {
+    position: fixed;
+    top: 60px;
+    left: 10px;
+    width: 500px; /* Νέο πλάτος */
+    background-color: #000; /* Μαύρο φόντο */
+    color: white; /* Άσπρο κείμενο */
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 8px;
+    z-index: 1000;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+    font-size: 14px;
+}
+
+
+        #manualContent {
+            display: none;
+            margin-top: 10px;
+        }
+
+        #manualToggleBtn {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        body {
+            margin-left: 280px; /* Για να μην κρύβεται το περιεχόμενο πίσω από το manual */
+        }
+    </style>
 </head>
 <body>
+    <div id="manualPanel">
+        <strong>ΠΕΡΙΓΡΑΦΗ ΠΡΟΓΡΑΜΜΑΤΟΣ (MANUAL)</strong><br>
+        <button id="manualToggleBtn" onclick="toggleManual()">Εμφάνιση / Απόκρυψη</button>
+        <div id="manualContent">
+            <ul>
+                <li>📁 Επίλεξε φάκελο με XML αρχεία.</li>
+                <li>▶ Πάτησε Play για επεξεργασία.</li>
+                <li>⏸ Κάνε Pause ή ■ Stop όποτε θέλεις.</li>
+                <li>📄 Φόρτωσε έγγραφα από τη βάση.</li>
+                <li>🔽 Χρησιμοποίησε φίλτρα για εμφάνιση πεδίων.</li>
+            </ul>
+        </div>
+    </div>
+
     <div class="container">
-        <h1>Επεξεργασία XML με Έλεγχος</h1>
+        <h1>Επεξεργασία XML με Έλεγχο</h1>
 
         <p>Επίλεξε φάκελο με αρχεία XML (μπορεί να περιέχει υποφακέλους):</p>
         <input type="file" id="folderInput" webkitdirectory directory multiple />
@@ -24,11 +523,39 @@
             <p>Πρόοδος: <span id="progressText">0%</span></p>
             <div id="progressBar" style="width: 0%; height: 20px; background-color: #4caf50;"></div>
         </div>
+
+        <hr />
+
+        <h2>Εμφάνιση Όλων των Εγγράφων</h2>
+
+        <label for="queryTypeSelect">Επέλεξε τι θέλεις να δεις:</label>
+        <select id="queryTypeSelect">
+            <option value="all">Όλα τα πεδία</option>
+            <option value="did_only">Μόνο DID</option>
+        </select>
+        <button id="loadDocsBtn" onclick="loadDocuments()" disabled>Φόρτωση</button>
+
+        <table id="resultsTable" border="1" style="margin-top: 20px; display: none; width: 100%;">
+            <thead>
+                <tr>
+                    <th>DID</th>
+                    <th>UCID</th>
+                    <th>Doc Number</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
 
     <script>
         let isPaused = false;
         let intervalId = null;
+
+        function toggleManual() {
+            const content = document.getElementById("manualContent");
+            content.style.display = content.style.display === "none" ? "block" : "none";
+        }
 
         function startProcessing() {
             const input = document.getElementById('folderInput');
@@ -59,10 +586,12 @@
             .then(data => {
                 document.getElementById('statusMessage').innerText = data.message;
                 showProgress();
+                document.getElementById('loadDocsBtn').disabled = false;
             })
             .catch(() => {
                 document.getElementById('statusMessage').innerText = 'Σφάλμα κατά το ανέβασμα φακέλου.';
                 resetButtons();
+                document.getElementById('loadDocsBtn').disabled = true;
             });
         }
 
@@ -126,6 +655,62 @@
             document.getElementById('progressText').innerText = '0%';
             document.getElementById('progressBar').style.width = '0%';
         }
+
+        function loadDocuments() {
+            const queryType = document.getElementById('queryTypeSelect').value;
+
+            fetch('/query_documents', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ queryType })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const table = document.getElementById('resultsTable');
+                const tbody = table.querySelector('tbody');
+                tbody.innerHTML = '';
+
+                if (!data.results || data.results.length === 0) {
+                    table.style.display = 'none';
+                    alert('Δεν βρέθηκαν αποτελέσματα.');
+                    return;
+                }
+
+                if (queryType === 'did_only') {
+                    table.querySelector('thead').innerHTML = `<tr><th>DID</th></tr>`;
+                    data.results.forEach(doc => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td>${doc.did}</td>`;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    table.querySelector('thead').innerHTML = `
+                        <tr>
+                            <th>DID</th>
+                            <th>UCID</th>
+                            <th>Doc Number</th>
+                            <th>Date</th>
+                        </tr>
+                    `;
+                    data.results.forEach(doc => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${doc.did}</td>
+                            <td>${doc.ucid}</td>
+                            <td>${doc.doc_number}</td>
+                            <td>${doc.date || ''}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+
+                table.style.display = 'table';
+            })
+            .catch(() => {
+                alert('Σφάλμα κατά την ανάκτηση των εγγράφων.');
+            });
+        }
     </script>
 </body>
 </html>
+

@@ -1,33 +1,75 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #121212;
+    color: #e0e0e0;
     text-align: center;
     padding: 50px;
+    margin: 0;
 }
 
 .container {
-    background-color: white;
+    max-width: 600px;
+    margin: auto;
+    background-color: #1e1e1e;
     padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+h1 {
+    color: #90caf9; /* soft light blue */
+    margin-bottom: 20px;
+}
+
+p {
+    color: #b0bec5;
+    font-size: 16px;
 }
 
 button {
     font-size: 16px;
-    margin: 0 5px;
-    padding: 10px 20px;
+    margin: 10px 5px;
+    padding: 10px 25px;
     cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    background-color: #2196f3; /* soft blue */
+    color: white;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button:hover:not(:disabled) {
+    background-color: #1976d2;
+    transform: scale(1.05);
 }
 
 button:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
 }
 
-#progressContainer {
+#statusMessage {
     margin-top: 20px;
+    font-weight: bold;
+    color: #bbdefb;
+}
+
+#progressContainer {
+    margin-top: 30px;
+    text-align: left;
+    width: 100%;
+}
+
+#progressText {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #81d4fa;
 }
 
 #progressBar {
+    width: 0%;
+    height: 20px;
+    background-color: #4fc3f7;
+    border-radius: 5px;
     transition: width 0.5s;
 }
